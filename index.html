@@ -3,38 +3,381 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BIONX</title>
+  <title>BioKiAI</title>
   <style>
-    body {
+    /* Reset */
+    * {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #ffffff;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f7f7f7;
+      color: #333;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background-color: #203a43;
+      color: #fff;
       display: flex;
       flex-direction: column;
+      padding: 1rem 0;
+      transition: width 0.3s ease;
+    }
+    .sidebar.collapsed {
+      width: 60px;
+    }
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .sidebar nav a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .sidebar nav a .icon {
+      width: 24px;
+      text-align: center;
+      margin-right: 0.75rem;
+    }
+    .sidebar.collapsed nav a span.label {
+      display: none;
+    }
+    /* Header */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+    }
+    .logo {
+      width: 36px;
+      height: 36px;
+      background-color: #fff;
+      border-radius: 50%;
+      margin-right: 0.75rem;
+    }
+    .app-name {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+    }
+    .search-bar {
+      position: relative;
+    }
+    .search-bar input {
+      padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+    .search-bar .search-icon {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      color: #555;
+    }
+    .header-icon {
+      margin-left: 1rem;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+    /* Content */
+    .content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .sidebar-toggle {
+      cursor: pointer;
+      margin-right: 1rem;
+      font-size: 1.25rem;
+    }
+    /* Main Panel */
+    .main-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .query-section {
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .query-section .inputs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+    .query-section input,
+    .query-section select {
+      padding: 0.5rem;
+      font-size: 0.95rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      flex: 1;
+      min-width: 150px;
+    }
+    .query-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .query-buttons button {
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background-color: #2c5364;
+      color: #fff;
+    }
+    .btn-secondary {
+      background-color: #ccc;
+      color: #333;
+    }
+    /* Visualization & Results */
+    .middle-section {
+      flex: 1;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .graph-panel,
+    .results-panel {
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 0.75rem 1rem;
+      background-color: #f0f0f0;
+      border-bottom: 1px solid #ddd;
+      font-weight: bold;
+    }
+    .graph-canvas {
+      flex: 1;
+      display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      text-align: center;
+      color: #777;
+      font-size: 1rem;
     }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 0.5em;
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
     }
-    p {
-      font-size: 1.2rem;
-      max-width: 500px;
+    .tabs button {
+      flex: 1;
+      padding: 0.75rem;
+      background: none;
+      border: none;
+      border-right: 1px solid #ddd;
+      font-size: 0.95rem;
+      cursor: pointer;
     }
-    .tagline {
-      font-style: italic;
-      color: #a0c4ff;
-      margin-top: 0.5em;
+    .tabs button:last-child {
+      border-right: none;
+    }
+    .tabs button.active {
+      background-color: #fff;
+      font-weight: bold;
+    }
+    .tab-content {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      font-size: 0.95rem;
+      color: #555;
+    }
+    /* Details Panel */
+    .details-panel {
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .details-header {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .sidebar {
+        position: absolute;
+        z-index: 100;
+        height: 100%;
+        transform: translateX(-100%);
+      }
+      .sidebar.visible {
+        transform: translateX(0);
+      }
+      .sidebar-toggle {
+        display: inline-block;
+      }
+      .middle-section {
+        flex-direction: column;
+      }
+    }
+    @media (max-width: 768px) {
+      .search-bar input {
+        width: 120px;
+      }
+      .query-section .inputs {
+        flex-direction: column;
+      }
+      .tabs button {
+        font-size: 0.85rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Welcome to BIONX</h1>
-  <p>A platform bridging biological intelligence and network exploration.</p>
-  <p class="tagline">Coming soon. Stay tuned.</p>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <nav>
+      <a href="#"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
+      <a href="#"><span class="icon">🧬</span><span class="label">Knowledge Graph</span></a>
+      <a href="#"><span class="icon">🔍</span><span class="label">Model Query</span></a>
+      <a href="#"><span class="icon">📤</span><span class="label">Data Upload</span></a>
+      <a href="#"><span class="icon">🔗</span><span class="label">Graph Explorer</span></a>
+      <a href="#"><span class="icon">⚙️</span><span class="label">Settings</span></a>
+    </nav>
+  </aside>
+
+  <!-- Main Area -->
+  <div class="main-area">
+    <!-- Header -->
+    <header>
+      <div class="header-left">
+        <span class="sidebar-toggle" id="toggleBtn">☰</span>
+        <div class="logo"></div>
+        <div class="app-name">BioKiAI</div>
+      </div>
+      <div class="header-right">
+        <div class="search-bar">
+          <input type="text" placeholder="Search entity..." />
+          <span class="search-icon">🔎</span>
+        </div>
+        <span class="header-icon">❓</span>
+        <span class="header-icon">🔔</span>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="main-panel">
+        <!-- Query Section -->
+        <div class="query-section">
+          <div class="inputs">
+            <input type="text" placeholder="Search Gene/Protein/Pathway…" />
+            <select>
+              <option>Data Modality</option>
+              <option>RNA-seq</option>
+              <option>Proteomics</option>
+              <option>Epigenetics</option>
+            </select>
+            <select>
+              <option>Model Type</option>
+              <option>Pathway Constrained DL</option>
+              <option>Graph-Augmented LLM</option>
+              <option>Attention GNN</option>
+            </select>
+            <select>
+              <option>Output Format</option>
+              <option>Summary</option>
+              <option>Detailed Report</option>
+            </select>
+          </div>
+          <div class="query-buttons" style="margin-top:1rem;">
+            <button class="btn-primary">Run Query</button>
+            <button class="btn-secondary">Reset</button>
+          </div>
+        </div>
+
+        <!-- Visualization & Results -->
+        <div class="middle-section">
+          <!-- Graph Panel -->
+          <div class="graph-panel">
+            <div class="panel-header">Knowledge Graph</div>
+            <div class="graph-canvas">
+              <!-- Placeholder for graph visualization -->
+              <span>Graph goes here</span>
+            </div>
+          </div>
+          <!-- Results Panel -->
+          <div class="results-panel">
+            <div class="panel-header">Results</div>
+            <div class="tabs">
+              <button class="active">Summary</button>
+              <button>Metrics</button>
+              <button>Download</button>
+            </div>
+            <div class="tab-content">
+              <!-- Placeholder for tab content -->
+              <p>Model output will appear here.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Panel -->
+        <div class="details-panel">
+          <div class="details-header">Details / Metadata</div>
+          <p>Click a node in the graph to view more information here.</p>
+          <p>Model parameters, timestamps, and logs will be shown.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle sidebar on smaller screens
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleBtn');
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('visible');
+    });
+  </script>
 </body>
 </html>
